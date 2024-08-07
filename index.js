@@ -7,6 +7,8 @@ import { fileURLToPath } from 'url';
 import Connection from "./config/db_config/db.js";
 import AuthRoute from "./routes/authRoutes.js";
 import socketServer from "./server.js";
+import FriendsRoutes from "./routes/friendsRoutes.js";
+import UserRoute from "./routes/usersRoutes.js";
 
 // Initialize dotenv
 dotenv.config();
@@ -40,8 +42,9 @@ app.use(express.json()); // This is sufficient for parsing JSON request bodies
 const apiV1Routes = Router();
 
 // Define routes in the router
-apiV1Routes.use('/user', AuthRoute);
-
+apiV1Routes.use('/auth', AuthRoute);
+apiV1Routes.use('/friends',FriendsRoutes);
+apiV1Routes.use('/user',UserRoute);
 // Use the router with a prefix
 app.use('/api/v1', apiV1Routes);
 

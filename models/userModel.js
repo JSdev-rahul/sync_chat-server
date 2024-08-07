@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "email requiredd"],
     unique: true,
+    index:true
   },
   password: {
     type: String,
@@ -15,6 +16,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: false,
     trim: true,
+    index:true
   },
   lastName: {
     type: String,
