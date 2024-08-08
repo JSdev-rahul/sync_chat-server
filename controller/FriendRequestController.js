@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import FriendRequest from "../models/friendsRequestModel.js";
-
+import Friends from "../models/friendsModel.js";
+import User from "../models/userModel.js";
 const FriendRequestController = {
   fetchAllFriendRequest: async (req, res) => {
     try {
@@ -82,6 +83,46 @@ const FriendRequestController = {
       res.status(500).json({
         message: "An error occurred while updating the friend request status",
       });
+    }
+  },
+  acceptFriendRequest: async (req, res) => {
+    try {
+      const { userId, friends } = req.body;
+
+      // Check if the user exists
+      const existingUser = await User.findById(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Fetch existing friends list for the user
+      let friendsList = await Friends.findOne({ userId });
+
+      if (friendsList) {
+        // Update existing friends list
+        const newFriends = new Set([
+          ...friendsList.friends.map((friend) => friend.toString()),
+          ...friends,
+        ]);
+        friendsList.friends = Array.from(newFriends);
+        await friendsList.save();
+
+        return res.status(200).json({
+          message: "Friends added successfully",
+          friends: friendsList.friends,
+        });
+      } else {
+        // Create a new friends list
+        friendsList = await Friends.create({ userId, friends });
+
+        return res.status(201).json({
+          message: "Friends list created and friends added successfully",
+          friends: friendsList.friends,
+        });
+      }
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+      res.status(500).json({ message: "Internal server error", error });
     }
   },
 };

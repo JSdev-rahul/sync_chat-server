@@ -12,5 +12,10 @@ FriendRequestRoute.patch(
   FriendRequestController.updateFriendRequestStatus
 );
 
+FriendRequestRoute.post(
+  "/acceptFriendRequest/",
+  FriendRequestController.acceptFriendRequest
+);
+
 
 export default FriendRequestRoute;

@@ -7,50 +7,82 @@ const FriendsController = {
   addFriend: async (req, res) => {
     try {
       const { userId, friends } = req.body;
-      const exitUser = await User.findById(userId);
-      if (exitUser) {
-        const friendsList = await Friends.findOne({ userId });
-        if (friendsList) {
-          const newFriends = await new Set([
-            ...friendsList.friends.map((friend) => friend.toString()),
-            ...friends,
-          ]);
-          friendsList.friends = await Array.from(newFriends);
-          await friendsList.save();
 
-          // Friend Request Collection
-          const friendsList = await Friends.create({ userId, friends });
+      const exitFriend = await Friends.findOne({
+        userId,
+      });
+      const isExist = exitFriend?.friends?.some(
+        (item) =>
+          item.toString() === new mongoose.Types.ObjectId(friends[0]).toString()
+      );
+      if (isExist) {
+        return res.status(200).json({
+          message: "user already in your friend list",
+        });
+      }
+      // Check if the user exists
+      const existingUser = await User.findById(userId);
+
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Fetch existing friends list for the user
+      let friendsList = await Friends.findOne({ userId });
+
+      if (friendsList) {
+        // Update existing friends list
+        const newFriends = new Set([
+          ...friendsList.friends.map((friend) => friend.toString()),
+          ...friends,
+        ]);
+        friendsList.friends = Array.from(newFriends);
+        await friendsList.save();
+      } else {
+        // Create a new friends list
+        friendsList = await Friends.create({ userId, friends });
+        await friendsList.save();
+      }
+      // update exitsiting FR collection
+      const updateStatusOfFriendRequest = await FriendRequest.findOneAndUpdate(
+        {
+          senderId: new mongoose.Types.ObjectId(friends[0]),
+        },
+        {
+          status: "accepet",
+        },
+        {
+          new: true,
+        }
+      );
+      console.log("updateStatusOfFriendRequest",updateStatusOfFriendRequest);
+
+      const isAlreadyInFriendList = await Friends.find({ userId: friends[0] });
+
+      if (isAlreadyInFriendList.length <= 0) {
+        const isfriendRequestAlreadyAvailable = await FriendRequest.find({
+          senderId: userId,
+        });
+
+        if (isfriendRequestAlreadyAvailable.length <= 0) {
           const newFriendRequest = await FriendRequest.create({
             senderId: userId,
             receiverId: friends[0],
             status: "pending",
           });
 
-          console.log("newFriendRequest", newFriendRequest);
           await newFriendRequest.save();
-          return res.status(200).json({
-            message: "Friends added successfully",
-            friends: friendsList.friends,
-          });
-    
-        } else {
-          const friendsList = await Friends.create({ userId, friends });
-          const newFriendRequest = await FriendRequest.create({
-            senderId: userId,
-            receiverId: friends[0],
-            status: "pending",
-          });
-          console.log("newFriendRequest", newFriendRequest);
-          await newFriendRequest.save();
-          await friendsList.save();
-          return res.status(201).json({
-            message: "Friends list created and friends added successfully",
-            friends: friendsList.friends,
-          });
         }
       }
+
+      // Create a new friend request
+
+      return res.status(200).json({
+        message: "Friends added successfully",
+        friends: friendsList.friends,
+      });
     } catch (error) {
-      console.error("Error getting friends list:", error);
+      console.error("Error adding friends:", error);
       res.status(500).json({ message: "Internal server error", error });
     }
   },
