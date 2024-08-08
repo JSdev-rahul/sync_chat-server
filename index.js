@@ -9,6 +9,7 @@ import AuthRoute from "./routes/authRoutes.js";
 import socketServer from "./server.js";
 import FriendsRoutes from "./routes/friendsRoutes.js";
 import UserRoute from "./routes/usersRoutes.js";
+import FriendRequestRoute from "./routes/friendRequest.js";
 
 // Initialize dotenv
 dotenv.config();
@@ -45,6 +46,8 @@ const apiV1Routes = Router();
 apiV1Routes.use('/auth', AuthRoute);
 apiV1Routes.use('/friends',FriendsRoutes);
 apiV1Routes.use('/user',UserRoute);
+apiV1Routes.use('/friendRequest',FriendRequestRoute)
+apiV1Routes.use('/updateStatus',FriendRequestRoute)
 // Use the router with a prefix
 app.use('/api/v1', apiV1Routes);
 

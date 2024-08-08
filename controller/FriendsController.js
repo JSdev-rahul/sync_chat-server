@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Friends from "../models/friendsModel.js";
 import User from "../models/userModel.js";
+import FriendRequest from "../models/friendsRequestModel.js";
 
 const FriendsController = {
   addFriend: async (req, res) => {
@@ -10,30 +11,48 @@ const FriendsController = {
       if (exitUser) {
         const friendsList = await Friends.findOne({ userId });
         if (friendsList) {
-          const newFriends = new Set([
+          const newFriends = await new Set([
             ...friendsList.friends.map((friend) => friend.toString()),
             ...friends,
           ]);
-          friendsList.friends = Array.from(newFriends);
+          friendsList.friends = await Array.from(newFriends);
           await friendsList.save();
-          return res
-            .status(200)
-            .json({
-              message: "Friends added successfully",
-              friends: friendsList.friends,
-            });
+
+          // Friend Request Collection
+          const friendsList = await Friends.create({ userId, friends });
+          const newFriendRequest = await FriendRequest.create({
+            senderId: userId,
+            receiverId: friends[0],
+            status: "pending",
+          });
+
+          console.log("newFriendRequest", newFriendRequest);
+          await newFriendRequest.save();
+          return res.status(200).json({
+            message: "Friends added successfully",
+            friends: friendsList.friends,
+          });
+    
         } else {
           const friendsList = await Friends.create({ userId, friends });
+          const newFriendRequest = await FriendRequest.create({
+            senderId: userId,
+            receiverId: friends[0],
+            status: "pending",
+          });
+          console.log("newFriendRequest", newFriendRequest);
+          await newFriendRequest.save();
           await friendsList.save();
-          return res
-            .status(201)
-            .json({
-              message: "Friends list created and friends added successfully",
-              friends: newFriendsList.friends,
-            });
+          return res.status(201).json({
+            message: "Friends list created and friends added successfully",
+            friends: friendsList.friends,
+          });
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error getting friends list:", error);
+      res.status(500).json({ message: "Internal server error", error });
+    }
   },
   getFriendsList: async (req, res) => {
     try {
@@ -84,7 +103,6 @@ const FriendsController = {
         },
       ]);
 
-      console.log("friendsList", friendsList);
       res.status(200).json({ data: friendsList });
     } catch (error) {
       console.error("Error getting friends list:", error);
