@@ -183,7 +183,6 @@ const FriendsController = {
       const { userId } = req.params;
       const { page = 1, limit = 5 } = req.query;
 
-      console.log(page, limit);
       // Fetch the user's friends list
       const friendsList = await Friends.aggregate([
         {
@@ -222,6 +221,7 @@ const FriendsController = {
               firstName: 1,
               lastName: 1,
               avatar: 1,
+              isOnline: 1,
             },
           },
         },

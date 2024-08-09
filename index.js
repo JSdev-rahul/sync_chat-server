@@ -6,10 +6,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Connection from "./config/db_config/db.js";
 import AuthRoute from "./routes/authRoutes.js";
-import socketServer from "./server.js";
+
 import FriendsRoutes from "./routes/friendsRoutes.js";
 import UserRoute from "./routes/usersRoutes.js";
 import FriendRequestRoute from "./routes/friendRequest.js";
+import { socketServer } from "./server.js";
 
 // Initialize dotenv
 dotenv.config();
@@ -57,4 +58,5 @@ const server=app.listen(PORT, () => {
   console.log(`Server started on PORT ${PORT}`);
 });
 
-socketServer(server);
+// socketServer(server);
+socketServer(server)

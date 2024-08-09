@@ -8,5 +8,6 @@ const AuthRoute = Router();
 AuthRoute.post('/signup', AuthController.signUp);
 AuthRoute.post('/login', AuthController.logIn);
 AuthRoute.post('/profile', upload.single('avatar'), AuthController.setUserProfile);
+AuthRoute.post('/logout/:userId',  AuthController.logout);
 
 export default AuthRoute;

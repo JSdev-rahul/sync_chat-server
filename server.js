@@ -6,9 +6,10 @@ import Message from "./models/messageModel.js"; // Adjust path as needed
 dotenv.config();
 
 const app = express();
-
+let io;
+let userSockets = {};
 const socketServer = (server) => {
-  const io = new socketIo(server, {
+  io = new socketIo(server, {
     cors: {
       origin: "*", // Allow all origins (replace "*" with your client's origin if needed)
       methods: ["GET", "POST"],
@@ -16,7 +17,7 @@ const socketServer = (server) => {
     },
   });
 
-  const userSockets = {};
+ 
 
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.userId;
@@ -158,4 +159,5 @@ const socketServer = (server) => {
   });
 };
 
-export default socketServer;
+export { socketServer, io,userSockets };
+

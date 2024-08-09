@@ -4,6 +4,9 @@ import { generateTokens } from "../services/tokenService.js";
 import fs from "fs";
 
 import path from "path";
+import Friends from "../models/friendsModel.js";
+import mongoose, { mongo } from "mongoose";
+import { io, userSockets } from "../server.js";
 const AuthController = {
   signUp: async (req, res) => {
     try {
@@ -57,10 +60,51 @@ const AuthController = {
 
       // genrate token for authetication of api
       const { accessToken, refreshToken } = await generateTokens(existingUser);
-      // Send success response
+      const updateUserData = await User.findOneAndUpdate(
+        { email },
+        { isOnline: true },
+        { new: true }
+      );
+      // emit event to all online friends
+
+      const allExitsOnlineFriends = await Friends.aggregate([
+        {
+          $match: {
+            userId: new mongoose.Types.ObjectId(existingUser?._id),
+          },
+        },
+        {
+          $unwind: "$friends",
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "friends",
+            foreignField: "_id",
+            as: "result",
+          },
+        },
+        {
+          $unwind: "$result",
+        },
+        {
+          $match: {
+            "result.isOnline": true,
+          },
+        },
+      ]);
+      allExitsOnlineFriends.forEach((friend) => {
+        const friendSocketId = userSockets[friend.result._id.toString()]; // Get the socket ID for the friend
+        if (friendSocketId) {
+          io.to(friendSocketId).emit("onlineStatus", {
+            userId: existingUser._id,
+            isOnline: true,
+          });
+        }
+      });
       return res
         .status(200)
-        .json({ data: existingUser, accessToken, refreshToken });
+        .json({ data: updateUserData, accessToken, refreshToken });
     } catch (error) {
       console.error("Error during user login:", error);
       return res.status(500).json({ message: "Internal server error" });
@@ -103,6 +147,60 @@ const AuthController = {
       }
 
       return res.status(200).json({ data: result });
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+  logout: async (req, res) => {
+    console.log("reqq", req.params);
+    try {
+      const { userId } = req.params;
+      const userDetails = await User.findByIdAndUpdate(
+        { _id: userId },
+        { isOnline: false, lastSeen: Date.now() },
+        { new: true }
+      );
+      const allExitsOnlineFriends = await Friends.aggregate([
+        {
+          $match: {
+            userId: new mongoose.Types.ObjectId(userId),
+          },
+        },
+        {
+          $unwind: "$friends",
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "friends",
+            foreignField: "_id",
+            as: "result",
+          },
+        },
+        {
+          $unwind: "$result",
+        },
+        {
+          $match: {
+            "result.isOnline": true,
+          },
+        },
+      ]);
+      console.log("allExitsOnlineFriends",allExitsOnlineFriends);
+      allExitsOnlineFriends.forEach((friend) => {
+        const friendSocketId = userSockets[friend.result._id.toString()]; // Get the socket ID for the friend
+        if (friendSocketId) {
+          io.to(friendSocketId).emit("onlineStatus", {
+            userId,
+            isOnline: false,
+            lastSeen: Date.now(),
+          });
+        }
+      });
+
+      console.log(userDetails);
+      return res.status(200).json({ message: "User Logout" });
     } catch (error) {
       console.error("Error updating user profile:", error);
       return res.status(500).json({ message: "Internal server error" });
