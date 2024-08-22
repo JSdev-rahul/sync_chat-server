@@ -12,16 +12,11 @@ const userSchema = new mongoose.Schema({
     required: [true, "password requiredd"],
     trim: true,
   },
-  firstName: {
+  userName: {
     type: String,
     required: false,
     trim: true,
     index: true,
-  },
-  lastName: {
-    type: String,
-    required: false,
-    trim: true,
   },
   isOnline: {
     type: Boolean,
@@ -36,13 +31,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  color: {
-    type: Number,
-    required: false,
-  },
   profileSetup: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 });
 

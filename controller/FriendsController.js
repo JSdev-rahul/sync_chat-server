@@ -218,8 +218,7 @@ const FriendsController = {
               _id: 1, // Include _id of friendDetails
               profileSetup: 1,
               email: 1, // Include profileSetup of friendDetails
-              firstName: 1,
-              lastName: 1,
+               userName:1,
               avatar: 1,
               isOnline: 1,
             },

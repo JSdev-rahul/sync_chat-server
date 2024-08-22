@@ -2,16 +2,15 @@ import { compare } from "bcrypt";
 import User from "../models/userModel.js";
 import { generateTokens } from "../services/tokenService.js";
 import fs from "fs";
-
 import path from "path";
 import Friends from "../models/friendsModel.js";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import { io, userSockets } from "../server.js";
 const AuthController = {
   signUp: async (req, res) => {
     try {
       console.log(req.body);
-      const { email, password } = req.body;
+      const { email, password, userName } = req.body;
       if (!email || !password) {
         return res
           .status(400)
@@ -21,7 +20,7 @@ const AuthController = {
       if (existingUser) {
         return res.status(409).json({ message: "Email is already in use" });
       } else {
-        const newUser = await User.create({ email, password });
+        const newUser = await User.create({ email, password, userName });
         newUser.password = undefined;
         return res.status(201).json({ user: newUser });
       }
@@ -187,7 +186,7 @@ const AuthController = {
           },
         },
       ]);
-      console.log("allExitsOnlineFriends",allExitsOnlineFriends);
+      console.log("allExitsOnlineFriends", allExitsOnlineFriends);
       allExitsOnlineFriends.forEach((friend) => {
         const friendSocketId = userSockets[friend.result._id.toString()]; // Get the socket ID for the friend
         if (friendSocketId) {

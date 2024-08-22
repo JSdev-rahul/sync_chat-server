@@ -37,8 +37,7 @@ const FriendRequestController = {
             createdAt: 1,
             friendRequestDetails: {
               _id: 1,
-              firstName: 1,
-              lastName: 1,
+               userName:1,
               avatar: 1,
               email: 1,
               profileSetup: 1,

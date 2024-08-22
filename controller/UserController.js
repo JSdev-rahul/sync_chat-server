@@ -12,8 +12,7 @@ const UserController = {
           $match: {
             $or: [
               { profileSetup: true },
-              { firstName: { $regex: searchQuery } },
-              { lastName: { $regex: searchQuery } },
+              { userName: { $regex: searchQuery } },
               { email: { $regex: searchQuery } },
             ],
           },
@@ -24,8 +23,7 @@ const UserController = {
         {
           $project: {
             id: "$_id",
-            name: "$firstName",
-            lname: "$lastName",
+            userName: "$userName",
             email: "$email",
             // avatar:"$avatar"
           },
