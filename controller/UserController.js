@@ -23,8 +23,9 @@ const UserController = {
         {
           $project: {
             id: "$_id",
-            userName: "$userName",
+            name: "$userName",
             email: "$email",
+            _id: 1,
             // avatar:"$avatar"
           },
         },
