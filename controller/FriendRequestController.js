@@ -11,7 +11,6 @@ const FriendRequestController = {
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
       }
-
       const matchCriteria = {
         receiverId: new mongoose.Types.ObjectId(userId),
         status,
